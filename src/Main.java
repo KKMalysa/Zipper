@@ -72,7 +72,7 @@ public class Main extends JFrame
         new Main().setVisible(true);
     }
 
-    private DefaultListModel DLModel = new DefaultListModel() //to tak można? O.O' #Anonymus ;)
+    private DefaultListModel DLModel = new DefaultListModel() //@
     {
         @Override
         public void addElement(Object obj)
@@ -86,14 +86,14 @@ public class Main extends JFrame
             return list.get(index);
         }
         @Override
-        public Object remove(int index)// ponieważ nasz to DefaultModelList
-        {                             // przechowuje adresy, a rmvFromList tylko
-            //  nazwy, trzeba je z niej usunąć.
-            list.remove(index);           // jak widać czary tu się żadne nie dzieją
-            return super.remove(index);     //    #wingardium_leviosa ^^
+        public Object remove(int index)
+        {                             
+                                        
+            list.remove(index);           
+            return super.remove(index);    
         }
 
-        ArrayList list = new ArrayList(); //#collection ;)
+        ArrayList list = new ArrayList(); 
 
     };
     private JList list = new JList(DLModel);
@@ -172,7 +172,7 @@ public class Main extends JFrame
 
                 byte tmpData[] = new byte[BUFFOR];
                 try
-                {  //----------------------------------------------------------------- towrzymy pustego ZIPa
+                {  //----------------------------------------------------------------- Create empty zip
                     ZipOutputStream zOutS = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(JFChooser.getSelectedFile()), BUFFOR));
 
                     for (int i= 0; i <DLModel.getSize(); i++)
