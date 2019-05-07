@@ -9,12 +9,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import javax.swing.border.EtchedBorder;
+
 /**
  *
  * @author Mauy
  */
+
 public class Main extends JFrame
 {
 
@@ -23,20 +25,22 @@ public class Main extends JFrame
         this.setBounds(450, 300, 450, 300);
         this.setTitle("ZIPPER");
         this.setJMenuBar(menuBar);
-        JMenu menuFile = menuBar.add(new JMenu("File"));
+            JMenu menuFile = menuBar.add(new JMenu("File"));
 
         Action actionAdd = new BAction("Add", "Add to list", "ctrl Q", new ImageIcon("plus.gif"));
         Action actionRemove = new BAction("Remove","Remove element from list", "ctrl W", new ImageIcon("minus.gif"));
         Action actionZip = new BAction("Zip","Zip all elements from list", "ctrl E", new ImageIcon("pakuj20.gif"));
+        Action actionUnzip = new BAction("Unzip","Unzip all elements from list", "ctrl R", new ImageIcon("odpakuj20.gif"));
 
-        JMenuItem menuAdd = menuFile.add(actionAdd);
-        JMenuItem menuRemove = menuFile.add(actionRemove);
-        JMenuItem menuZip = menuFile.add(actionZip);
-
+            JMenuItem menuAdd = menuFile.add(actionAdd);
+            JMenuItem menuRemove = menuFile.add(actionRemove);
+            JMenuItem menuZip = menuFile.add(actionZip);
+            JMenuItem menuUnzip = menuFile.add(actionUnzip);
 
         add = new JButton(actionAdd);
         rmv = new JButton(actionRemove);
         zip = new JButton(actionZip);
+        unzip = new JButton(actionUnzip);
         JScrollPane scroll = new JScrollPane(list);
         list.setBorder(BorderFactory.createEtchedBorder(Color.lightGray, Color.WHITE));
 
@@ -51,7 +55,9 @@ public class Main extends JFrame
                                 .addComponent(rmv))
                         .addComponent(scroll, 200, 250, Short.MAX_VALUE))
                 .addGap(50,50, Short.MAX_VALUE)
-                .addComponent(zip));
+                .addGroup(layout.createParallelGroup()
+                        .addComponent(unzip)
+                        .addComponent(zip)));
 
         layout.setVerticalGroup(layout.createSequentialGroup()
                 .addGroup(layout.createSequentialGroup()
@@ -61,18 +67,21 @@ public class Main extends JFrame
                         .addGap(20,20, 20)
                         .addComponent(scroll, 50, 100, Short.MAX_VALUE))
                 .addGap(20,20, Short.MAX_VALUE)
-                .addComponent(zip) );
+                .addGroup(layout.createSequentialGroup()
+                        .addComponent(unzip)
+                        .addComponent(zip)));
 
         this.getContentPane().setLayout(layout);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setIconImage(Toolkit.getDefaultToolkit().getImage("Zp.gif"));
         this.pack();
     }
+
     public static void main(String[] args) {
         new Main().setVisible(true);
     }
 
-    private DefaultListModel DLModel = new DefaultListModel() //to tak można? O.O' #Anonymus ;)
+    private DefaultListModel DLModel = new DefaultListModel() //
     {
         @Override
         public void addElement(Object obj)
@@ -86,21 +95,22 @@ public class Main extends JFrame
             return list.get(index);
         }
         @Override
-        public Object remove(int index)// ponieważ nasz to DefaultModelList
-        {                             // przechowuje adresy, a rmvFromList tylko
-            //  nazwy, trzeba je z niej usunąć.
-            list.remove(index);           // jak widać czary tu się żadne nie dzieją
-            return super.remove(index);     //    #wingardium_leviosa ^^
+        public Object remove(int index)       // DefaultModelList przechowuje adresy
+        {                                     // a rmvFromList tylko nazwy
+            list.remove(index);               // jak widać czary tu się żadne nie dzieją
+            return super.remove(index);       //    #wingardium_leviosa ^^
         }
 
-        ArrayList list = new ArrayList(); //#collection ;)
+        ArrayList list = new ArrayList();
 
     };
+
     private JList list = new JList(DLModel);
     private JMenuBar menuBar = new JMenuBar();
     private JButton add = new JButton();
     private JButton rmv = new JButton();
     private JButton zip = new JButton();
+    private JButton unzip = new JButton();
     private JFileChooser JFChooser = new JFileChooser();
 
     private class BAction extends AbstractAction //------------------------------------- Action!
@@ -122,11 +132,12 @@ public class Main extends JFrame
         {
             if (e.getActionCommand().equals("Add"))
                 addToList();
-
             if (e.getActionCommand().equals("Remove"))
                 rmvFromList();
             if (e.getActionCommand().equals("Zip"))
                 createZipArchive();
+            if (e.getActionCommand().equals("Unzip"))
+                UnzipArchive();
         }
         private void addToList() //----------------------------------------------------- add
         {
@@ -145,6 +156,7 @@ public class Main extends JFrame
                         DLModel.addElement(paths[i]);
             }
         }
+
         private boolean sameName (String testedElement)
         {
             for (int i=0; i < DLModel.getSize(); i++)
@@ -154,12 +166,56 @@ public class Main extends JFrame
 
             return false;
         }
+
         private void rmvFromList() //--------------------------------------------------- Remove
         {
             int[] tmp = list.getSelectedIndices();
             for (int i = 0; i<tmp.length ; i++)
                 DLModel.remove(tmp[i]-i);
         }
+
+        private void UnzipArchive() //---------------------------------------------- Unzip archive
+        {
+            JFChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+            int tmp = JFChooser.showDialog(rootPane, "Decompress");
+
+            if (tmp == JFileChooser.APPROVE_OPTION)
+            {
+                File folder = new File(System.getProperty("user.dir")+File.separator+"unzipTEST");
+                ZipEntry record = null;
+                byte []tmpData = new byte[BUFFOR];
+
+                try
+                {
+                    if (!folder.exists())
+                        folder.mkdir();
+
+                    ZipInputStream zInS = new ZipInputStream(new BufferedInputStream(new FileInputStream(JFChooser.getSelectedFile()), BUFFOR));
+
+
+                    while ((record = zInS.getNextEntry())!=null)
+                    {
+                        BufferedOutputStream fOutS = new BufferedOutputStream(new FileOutputStream(folder+File.separator+record.getName()), BUFFOR);
+
+                        int counter;
+                        while((counter = zInS.read(tmpData, 0, BUFFOR))!= -1 )
+                            fOutS.write(tmpData, 0, BUFFOR);
+
+                        fOutS.close();
+                        zInS.closeEntry();
+                    }
+
+
+                    zInS.close();
+                }
+                catch(IOException e)
+                {
+                    System.out.println(e.getMessage());
+                }
+            }
+
+        }
+
         private void createZipArchive() //---------------------------------------------- Create zip archive
         {
             JFChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
@@ -199,6 +255,7 @@ public class Main extends JFrame
                 }
             }
         }
+
         private void zip(ZipOutputStream zOutS, File toFilePath, byte[] tmpData, String basePath) throws IOException
         {
             BufferedInputStream inS = new BufferedInputStream(new FileInputStream(toFilePath), BUFFOR);
@@ -213,6 +270,7 @@ public class Main extends JFrame
 
             inS.close();
         }
+
         public static final int BUFFOR = 1024;
 
         private void writePaths(File pathName)
