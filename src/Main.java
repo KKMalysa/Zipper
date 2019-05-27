@@ -228,7 +228,7 @@ public class Main extends JFrame
 
                 byte tmpData[] = new byte[BUFFOR];
                 try
-                {  //----------------------------------------------------------------- towrzymy pustego ZIPa
+                {  //----------------------------------------------------------------- empty ZIP
                     ZipOutputStream zOutS = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(JFChooser.getSelectedFile()), BUFFOR));
 
                     for (int i= 0; i <DLModel.getSize(); i++)
